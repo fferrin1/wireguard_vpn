@@ -1,0 +1,62 @@
+version: '3.6'
+services:
+  wg-portal:
+    image: h44z/wg-portal:latest
+    container_name: wg-portal
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    network_mode: "host"
+    volumes:
+      - /etc/wireguard:/etc/wireguard
+      - ./data:/app/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - '8123:8123'
+    environment:
+      # WireGuard Settings
+      - WG_DEVICES=wg0
+      - WG_DEFAULT_DEVICE=wg0
+      - WG_CONFIG_PATH=/etc/wireguard
+      # Core Settings
+      - EXTERNAL_URL=http://you_public_ip:8123
+      - WEBSITE_TITLE=you title siste
+      - COMPANY_NAME=EXAMPLE.COM
+      - ADMIN_USER=admin@EXAMPLE.COM
+      - ADMIN_PASS=ADMIN
+      # Time zone Colombia
+      - TZ=America/Bogota
+      # Mail Settings
+      - MAIL_FROM=test@example.com
+      - EMAIL_HOST=you_host_smtp_xxx.xxx.xxx.xxx
+      - EMAIL_PORT=465
+      - EMAIL_USERNAME=test@example.com
+      - EMAIL_PASSWORD=test
+      - EMAIL_TLS=true ## true or false flags
+      - EMAIL_AUTHTYPE=plain
+      - EMAIL_CERT_VALIDATION=true ## true or false flags
+        # LDAP Settings
+      - LDAP_ENABLED=true
+      - LDAP_URL=ldap://172.29.0.2:389
+      - LDAP_BASEDN=DC=example,DC=local
+      - LDAP_USER=administrator@example.local
+      - LDAP_PASSWORD=admin
+      - LDAP_ADMIN_GROUP=CN=test,OU=Users,DC=example,DC=local
+
+  samba:
+    image: imunew/samba4-ad-dc:latest
+    privileged: true
+    container_name: samba4
+    hostname: samba4
+    environment:
+      SAMBA_DC_REALM: example.local
+      SAMBA_DC_DOMAIN: example
+      SAMBA_DC_ADMIN_PASSWD: adminpassword
+      SAMBA_DC_DNS_BACKEND: SAMBA_INTERNAL
+
+    ports:
+      - 389:389
+      - 53:53/udp
+      - 53:53
+      - 389:389/udp
